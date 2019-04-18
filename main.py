@@ -3,7 +3,7 @@
 
 import sys
 
-# oszlopnevek megfeleltetései (deps és misc hiányzik)
+# oszlopnevek megfeleltetései (deps és misc hiányzik az emtsvből)
 col_mapper = {'id': 'ID',
               'form': 'FORM',
               'lemma': 'LEMMA',
@@ -20,9 +20,11 @@ conll = ['ID', 'FORM', 'LEMMA', 'UPOS', 'XPOS', 'FEATS', 'HEAD', 'DEPREL', 'DEPS
 
 def read_file(filename):
     """
-
-    :param filename:
-    :return:
+    beolvassa az emtsv kimenetét
+    kinyeri az oszlopneveket
+    listába elrakja a sorok tartalmát (amelyek szintén listák)
+    :param filename: a beolvasandó fájl neve (emtsv kimenete)
+    :return: kinyert oszlopnevek, sorok listája
     """
 
     with open(filename, 'r') as inf:
@@ -41,8 +43,8 @@ def read_file(filename):
 
 def map_cols(cols):
     """
-
-    :param cols:
+    az emtsv oszlopneveit megfelelteti a conll oszlopneveknek
+    :param cols: emtsv oszlopnevek dictben (kulcs: oszlopszám, érték: oszlopnév)
     :return:
     """
 
@@ -51,28 +53,12 @@ def map_cols(cols):
             cols[c] = col_mapper[cols[c]]
 
 
-def purge_cols(cols):
-    """
-
-    :param cols:
-    :return:
-    """
-
-    to_purge = set()
-    for c in cols:
-        if cols[c] not in conll:
-            to_purge.add(c)
-
-    for i in to_purge:
-        del cols[i]
-
-
 def rotate(col_name, cols):
     """
-
-    :param col_name:
-    :param cols:
-    :return:
+    a conll oszlopoknak megfelelő dictekbe teszi a sorok tartalmát
+    :param col_name: oszlopnevek, ahol a conll-nek megfeleltethető nevek mappelve vannak a conll-re
+    :param cols: sorok
+    :return: dictek listája, ahol a dictben az egyes mezők a conll oszlopoknak vannak megfeleltetve
     """
 
     conll_lines = list()
@@ -90,6 +76,11 @@ def rotate(col_name, cols):
 
 
 def print_conll(conll_lines):
+    """
+    kinyomtatja a jól formázott conll fájlt
+    :param conll_lines: a dictekben rendezett sorok, amiből már nyotmatható a megfelelő sorrend
+    :return:
+    """
 
     with open('vizilo.conll', 'w') as ouf:
 
@@ -108,19 +99,17 @@ def print_conll(conll_lines):
                 print('', file=ouf)
 
 
-
 def main():
     # beolvassuk az emtsv kimenetet, kinyerjük az oszlopneveket és oszlopszámokat is
     col_name, cols = read_file(sys.argv[1])
     # az oszlopneveket megfeleltetjük a conll-nek
     map_cols(col_name)
-    # az oszlopnevekből kiszedjük, ami nem conll, betesszük, ami conll
-    purge_cols(col_name)
     # az oszlopokat conll sorrendezzük
     conll_lines = rotate(col_name, cols)
     # kiírjuk a connl fájlt
     print_conll(conll_lines)
 
+    # TODO conll validátort be lehetne illeszteni a nyomtatás elé
 
 if __name__ == "__main__":
     main()
