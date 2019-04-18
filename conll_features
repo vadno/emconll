@@ -1,0 +1,56 @@
+CoNLL-U
+https://universaldependencies.org/format.html
+kiterjesztése: .conll
+
+- a szó/token annotációja tíz tabbal szeparált mezőben van
+- a mondathatárt üres sor jelzi
+- a kommentek #-kal kezdődnek
+- a mondatok legalább egy sor hosszúak
+
+a tíz mező:
+1. ID: szóindex, minden mondatnál újrakezdődik. multiword tokenekél lehet range is (2-3), decimális lehet a null elemeknek (1-nél kisebb is lehet)
+2. FORM: token
+3. LEMMA: lemma, tő
+4. UPOS: UD POS-tag
+5. XPOS: nyelvspecifikus POS-tag
+6. FEATS: UD vagy nem UD feature-value morfológiai címke
+7. HEAD: fej a függőségi elemzéshez kell
+8. DEPREL: UD vagy nem UD függőségi reláció a fejhez
+9. DEPS: HEAD-DEPREL párok a fölöttes függőségi fát tartalmazzák (asszem...)
+10. MISC: egyebek
+
+a mezők tulajdonságai:
+- a mező nem lehet üres
+- csak a FORM és a LEMMA tartalmazhaz space karaktert
+- alávonás a specifikálatlan mezők jele (az ID-ben nem lehet ilyen)
+
+CoNLL-U Plus
+https://universaldependencies.org/ext-format.html
+kiterjesztése: .conllup
+
+- ugyanaz, mint a CoNLL, kivéve
+- nem fix tíz oszlopa van, hanem >1 bármennyi
+- az első sorban van egy komment (#), ami felsorolja a használt oszlopneveket szóközzel elválasztva
+- vannak előre definiált oszlopnevek (u.az, mint a CoNLL)
+- az előre definiált oszlopokat bármilyen kombinációban tartalmazhatja
+
+emtsv kimeneti oszlopnevek
+megfelelnek a CoNLL-nek:
+id (ID)
+form (FORM)
+lemma (LEMMA)
+upostag (UPOS)
+xpostag (XPOS)
+feats (FEATS)
+head (HEAD)
+deprel (DEPREL)
+
+nem felelnek meg a CoNLL-nek:
+anas
+NP-BIO
+NER-BIO
+cons
+
+hiányzik:
+DEPS
+MISC
