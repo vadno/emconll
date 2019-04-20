@@ -4,6 +4,11 @@
 import sys
 
 # oszlopnevek megfeleltetései (deps és misc hiányzik az emtsvből)
+# TODO: RFC1: A a misc-be kellene "midnen fölösleges mezőt" berakni JSON-ban, hogy ne legyen információveszteség.
+# TODO: RFC2: A deps igazából a HEAD:DEPREL alakú dolog, amit tovább lehet bővíteni, ha nem FA a kimenet, hanem DAG.
+#  Tehát legenerálható...
+# TODO: RFC3: Akarunk-e MAAAAJD mondateleji szabványos CoNLL-U kommenteket? (tokenizálatlan mondat, mondat ID stb.)
+#  Az emToken-t kellene ehhez kicsit átalakítani. Ivánnal tervbe van véve.
 col_mapper = {'id': 'ID',
               'form': 'FORM',
               'lemma': 'LEMMA',
@@ -18,30 +23,24 @@ col_mapper = {'id': 'ID',
 conll = ['ID', 'FORM', 'LEMMA', 'UPOS', 'XPOS', 'FEATS', 'HEAD', 'DEPREL', 'DEPS', 'MISC']
 
 
-def read_file(filename):
+def read_file(input_iterator):  # TODO XTSV-vel megoldani: Ezt az XTSV csinálja, nem kell itt implementálni.
     """
     beolvassa az emtsv kimenetét
     kinyeri az oszlopneveket
     listába elrakja a sorok tartalmát (amelyek szintén listák)
-    :param filename: a beolvasandó fájl neve (emtsv kimenete)
+    :param input_iterator: a beolvasandó stream neve (emtsv kimenete)
     :return: kinyert oszlopnevek, sorok listája
     """
-
-    with open(filename, 'r') as inf:
-        # első sor a fejléc az oszlopnevekkel
-        header = inf.readline().strip().split()
-        # kinyerem az oszlopszámokat a header sorrendjéből
-        col_name = {i: header[i] for i in range(0, len(header))}
-
-        cols = []
-
-        for line in inf:
-            cols.append(line.strip().split('\t'))
-
-    return col_name, cols
+    # első sor a fejléc az oszlopnevekkel
+    header = input_iterator.readline().strip().split()
+    # kinyerem az oszlopszámokat a header sorrendjéből
+    col_name = {i: col for i, col in enumerate(header)}
+    lines = [line.strip().split('\t') for line in input_iterator]  # TODO: Itt az egész a memóriában van! Veszélyes!
+    #  Ebből látszik, hogy külön kell a headert beolvasni a contenttől, mert a content egy iterátor kell, hogy legyen.
+    return col_name, lines
 
 
-def map_cols(cols):
+def map_cols(cols):  # TODO XTSV-vel megoldani: prepare_fields()
     """
     az emtsv oszlopneveit megfelelteti a conll oszlopneveknek
     :param cols: emtsv oszlopnevek dictben (kulcs: oszlopszám, érték: oszlopnév)
@@ -53,63 +52,57 @@ def map_cols(cols):
             cols[c] = col_mapper[cols[c]]
 
 
-def rotate(col_name, cols):
+def rotate(col_name, lines):  # TODO: Ezt a print_conll()-en belülről kellene hívni, mert amúgy fölöslegs az XTSV miatt.
     """
     a conll oszlopoknak megfelelő dictekbe teszi a sorok tartalmát
     :param col_name: oszlopnevek, ahol a conll-nek megfeleltethető nevek mappelve vannak a conll-re
-    :param cols: sorok
-    :return: dictek listája, ahol a dictben az egyes mezők a conll oszlopoknak vannak megfeleltetve
+    :param lines: sorok
+    :return: dictek iterátora, ahol a dictben az egyes mezők a conll oszlopoknak vannak megfeleltetve
     """
 
-    conll_lines = list()
-
-    for line in cols:
+    for line in lines:
+        line_dict = dict()
         if len(line) > 1:
-            line_dict = dict()
-            for c in col_name:
-                line_dict[col_name[c]] = line[c]
-            conll_lines.append(line_dict)
-        else:
-            conll_lines.append([])
-
-    return conll_lines
+            line_dict = {col_name[c]: line[c] for c in col_name}
+        yield line_dict  # Így egyszrre egy sorral foglalkozunk, nincs memória korlát.
 
 
-def print_conll(conll_lines):
+def print_conll(conll_lines):  # TODO: Ő lesz a fő függvény: process_sentence()
     """
     kinyomtatja a jól formázott conll fájlt
     :param conll_lines: a dictekben rendezett sorok, amiből már nyotmatható a megfelelő sorrend
-    :return:
+    :return: egy generátor, ami soronként előállítja a kimeneti fájlt
     """
 
-    with open('vizilo.conll', 'w') as ouf:
+    yield '{0}\n'.format('\t'.join(conll))
 
-        print('\t'.join(conll), file=ouf)
-
-        for line in conll_lines:
-            if len(line) > 1:
-                to_print = list()
-                for col in conll:
-                    if col not in line:
-                        to_print.append('_')
-                    else:
-                        to_print.append(line[col])
-                print('\t'.join(to_print), file=ouf)
-            else:
-                print('', file=ouf)
+    for line in conll_lines:
+        if len(line) > 1:
+            to_print = list()
+            for col in conll:
+                if col not in line:
+                    to_print.append('_')
+                else:
+                    to_print.append(line[col])
+            yield '{0}\n'.format('\t'.join(to_print))
+        else:
+            yield '\n'
 
 
 def main():
     # beolvassuk az emtsv kimenetet, kinyerjük az oszlopneveket és oszlopszámokat is
-    col_name, cols = read_file(sys.argv[1])
+    with open(sys.argv[1], encoding='UTF-8') as inf:
+        col_name, lines = read_file(inf)
     # az oszlopneveket megfeleltetjük a conll-nek
     map_cols(col_name)
     # az oszlopokat conll sorrendezzük
-    conll_lines = rotate(col_name, cols)
+    conll_lines = rotate(col_name, lines)
     # kiírjuk a connl fájlt
-    print_conll(conll_lines)
+    with open('vizilo.conll', 'w', encoding='UTF-8') as ouf:
+        ouf.writelines(print_conll(conll_lines))
 
     # TODO conll validátort be lehetne illeszteni a nyomtatás elé
 
-if __name__ == "__main__":
+
+if __name__ == '__main__':
     main()
