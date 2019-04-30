@@ -74,7 +74,8 @@ def print_conll(conll_lines):  # TODO: Ő lesz a fő függvény: process_sentenc
     :return: egy generátor, ami soronként előállítja a kimeneti fájlt
     """
 
-    yield '{0}\n'.format('\t'.join(conll))
+    # nincs header a conll-u-ban!
+    # yield '{0}\n'.format('\t'.join(conll))
 
     for line in conll_lines:
         if len(line) > 1:
