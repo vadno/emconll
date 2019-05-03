@@ -5,6 +5,7 @@ import sys
 
 
 class EmCoNLL:
+    pass_header = False
 
     def __init__(self, source_fields=None, target_fields=None):
         self._col_mapper = {'id': 'ID',
