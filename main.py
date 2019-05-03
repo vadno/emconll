@@ -3,12 +3,6 @@
 
 import sys
 
-# oszlopnevek megfeleltetései (deps és misc hiányzik az emtsvből)
-# TODO: RFC1: A a misc-be kellene "midnen fölösleges mezőt" berakni JSON-ban, hogy ne legyen információveszteség.
-# TODO: RFC2: A deps igazából a HEAD:DEPREL alakú dolog, amit tovább lehet bővíteni, ha nem FA a kimenet, hanem DAG.
-#  Tehát legenerálható...
-# TODO: RFC3: Akarunk-e MAAAAJD mondateleji szabványos CoNLL-U kommenteket? (tokenizálatlan mondat, mondat ID stb.)
-#  Az emToken-t kellene ehhez kicsit átalakítani. Ivánnal tervbe van véve.
 col_mapper = {'id': 'ID',
               'form': 'FORM',
               'lemma': 'LEMMA',
@@ -101,9 +95,6 @@ def main():
     # kiírjuk a connl fájlt
     with open('vizilo.conll', 'w', encoding='UTF-8') as ouf:
         ouf.writelines(print_conll(conll_lines))
-
-    # TODO conll validátort be lehetne illeszteni a nyomtatás elé
-
 
 if __name__ == '__main__':
     main()
