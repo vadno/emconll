@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8, vim: expandtab:ts=4 -*-
 
-import sys
-
 
 class EmCoNLL:
     pass_header = False
@@ -53,29 +51,3 @@ class EmCoNLL:
 
         return {self._col_mapper[emtsv_name]: col_num for col_num, emtsv_name in field_names.items()
                 if emtsv_name in self._col_mapper}
-
-
-def main():
-    conv = EmCoNLL()
-    input_iterator = sys.stdin
-    output_iterator = sys.stdout
-    # Header with the field names
-    header = {i: name for i, name in enumerate(input_iterator.readline().strip().split())}
-    # Map the required field names to the indices
-    field_names = conv.prepare_fields(header)
-    # Convert sentence-by-sentence
-    curr_sen = []
-    for line in input_iterator:
-        line = line.strip()
-        if len(line) > 0:
-            curr_sen.append(line.split('\t'))
-        else:
-            if curr_sen:  # End of sentence
-                output_iterator.writelines('{0}\n'.format('\t'.join(line))
-                                           for line in conv.process_sentence(curr_sen, field_names))
-                output_iterator.write('\n')
-                curr_sen = []
-
-
-if __name__ == '__main__':
-    main()
