@@ -20,12 +20,10 @@ class EmCoNLL:
                             'misc': 'MISC'
                             }
 
-        if extra_columns is not None:
+        if extra_columns is not None:  # Keys are unique for each dict, but values may duplicate!
             if len(self._col_mapper.keys() & extra_columns.keys()) > 0 or \
                     len(set(self._col_mapper.values()) & set(extra_columns.values())) > 0 or \
-                    len(set(self._col_mapper.values())) < len(self._col_mapper.values()) or \
-                    len(self._col_mapper.keys()) + len(extra_columns.keys()) != \
-                    len(self._col_mapper.keys() | extra_columns.keys()):
+                    len(set(extra_columns.values())) < len(extra_columns.values()):
                 raise ValueError(f'Some extra_column input or output name is duplicated:'
                                  f' {self._col_mapper} and {extra_columns} !')
             self._col_mapper.update(extra_columns)
