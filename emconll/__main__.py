@@ -42,7 +42,7 @@ def main():
     tools = [(em_conll, ('conll', 'emCoNLL'))]
 
     # Run the pipeline on input and write result to the output...
-    output_iterator.writelines(build_pipeline(input_data, used_tools, tools, presets))
+    output_iterator.writelines(build_pipeline(input_data, used_tools, tools, presets, opts.conllu_comments))
 
 
 if __name__ == '__main__':
